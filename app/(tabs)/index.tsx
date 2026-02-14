@@ -134,10 +134,10 @@ export default function SearchScreen() {
     if(filters.cardTypes?.length > 0) filteredList = filteredList.filter((c:any) => filters.cardTypes.includes(c.type));
     if(filters.sizes?.length > 0) filteredList = filteredList.filter((c:any) => filters.sizes.includes(c.attributes.size));
     if(filters.species?.length > 0) filteredList = filteredList.filter((c:any) => filters.species.includes(c.attributes.species));
-    if(filters.classes?.length > 0) filteredList = filteredList.filter((c:any) => filters.sizes.includes(c.attributes.class));
-    if(filters.personalities?.length > 0) filteredList = filteredList.filter((c:any) => filters.sizes.includes(c.attributes.personality));
-    if(filters.homeworlds?.length > 0) filteredList = filteredList.filter((c:any) => filters.sizes.includes(c.homeworld));
-    if(filters.sets?.length > 0) filteredList = filteredList.filter((c:any) => filters.sizes.includes(c.set));
+    if(filters.classes?.length > 0) filteredList = filteredList.filter((c:any) => filters.classes.includes(c.attributes.class));
+    if(filters.personalities?.length > 0) filteredList = filteredList.filter((c:any) => filters.personalities.includes(c.attributes.personality));
+    if(filters.homeworlds?.length > 0) filteredList = filteredList.filter((c:any) => filters.homeworlds.includes(c.homeworld));
+    if(filters.sets?.length > 0) filteredList = filteredList.filter((c:any) => filters.sets.includes(c.set));
 
     setFilteredCards(filteredList);
   }
