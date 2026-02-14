@@ -3,6 +3,9 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import ImageManifest from '@/data/ImageManifest.js';
 import {useWindowDimensions} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ImageZoom } from '@likashefqet/react-native-image-zoom';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useState } from 'react';
 
 type Props = {
   isVisible: boolean;
@@ -12,39 +15,55 @@ type Props = {
 
 export default function ArmyCardDetail({ isVisible, onClose, data }: Props) {
   const {width} = useWindowDimensions();
+  const [showDetails, setShowDetails] = useState(true);
+
   return (
     <Modal animationType="slide" transparent={true} visible={isVisible}>
-      <View style={{...styles.modalContent, width: width}}>
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>{data.name}</Text>
-          <Pressable onPress={onClose}>
-            <MaterialIcons name="close" color="#fff" size={22} />
-          </Pressable>
-        </View>
-        <View style={{width: width, height: width, padding: '10px'}}>
-           <Image source={ImageManifest[data.localImagePath]} style={[styles.image]}/>
-        </View>
-        <ScrollView style={styles.detailContainer}>
-            <View style={styles.textRow}>
-                <Text style={styles.textLabel}>Contemporary Legal:</Text>
-                <Text style={styles.text}>{data.attributes.contemporaryLegal ? "Yes" : "No"}</Text>
+      <GestureHandlerRootView>
+          <View style={{...styles.modalContent, width: width}}>
+            <View style={styles.titleContainer}>
+              <Text style={styles.title}>{data.name}</Text>
+              <Pressable onPress={onClose}>
+                <MaterialIcons name="close" color="#fff" size={22} />
+              </Pressable>
             </View>
-            <View style={styles.textRow}>
-                <Text style={styles.textLabel}>Homeworld:</Text>
-                <Text style={styles.text}>{data.homeworld}</Text>
+            <View style={{width: width, height: width, padding: '10px'}}>
+                <ImageZoom
+                    style={styles.image}
+                    source={ImageManifest[data.localImagePath]}
+                    minScale={1}
+                    maxScale={5}
+                    isPinchEnabled
+                    isDoubleTapEnabled
+                    doubleTapScale={3}
+                    onInteractionStart={() => setShowDetails(false)}
+                    onDoubleTap={() => setShowDetails(false)}
+                    onResetAnimationEnd={() => setShowDetails(true)}
+                />
             </View>
-            <View style={styles.textRow}>
-                <Text style={styles.textLabel}>Set:</Text>
-                <Text style={styles.text}>{data.set}</Text>
-            </View>
-            {(data.erratas && data.erratas) &&
-                <View style={styles.textColumn}>
-                    <Text style={styles.textLabel}>Errata:</Text>
-                    <Text style={{...styles.text, paddingLeft: 20, paddingBottom: 20}}>{data.erratas.replace(/<br\s*\/?>/g, '\n')}</Text>
-                </View>
+            {showDetails && <ScrollView style={styles.detailContainer}>
+                    <View style={styles.textRow}>
+                        <Text style={styles.textLabel}>Contemporary Legal:</Text>
+                        <Text style={styles.text}>{data.attributes.contemporaryLegal ? "Yes" : "No"}</Text>
+                    </View>
+                    <View style={styles.textRow}>
+                        <Text style={styles.textLabel}>Homeworld:</Text>
+                        <Text style={styles.text}>{data.homeworld}</Text>
+                    </View>
+                    <View style={styles.textRow}>
+                        <Text style={styles.textLabel}>Set:</Text>
+                        <Text style={styles.text}>{data.set}</Text>
+                    </View>
+                    {(data.erratas && data.erratas) &&
+                        <View style={styles.textColumn}>
+                            <Text style={styles.textLabel}>Errata:</Text>
+                            <Text style={{...styles.text, paddingLeft: 20, paddingBottom: 20}}>{data.erratas.replace(/<br\s*\/?>/g, '\n')}</Text>
+                        </View>
+                    }
+                </ScrollView>
             }
-        </ScrollView>
-      </View>
+          </View>
+      </GestureHandlerRootView>
     </Modal>
   );
 }
