@@ -4,7 +4,6 @@ import ImageManifest from '@/data/ImageManifest.js';
 import {useWindowDimensions} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ImageZoom } from '@likashefqet/react-native-image-zoom';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useState } from 'react';
 
 type Props = {
@@ -19,15 +18,14 @@ export default function ArmyCardDetail({ isVisible, onClose, data }: Props) {
 
   return (
     <Modal animationType="slide" transparent={true} visible={isVisible}>
-      <GestureHandlerRootView>
-          <View style={{...styles.modalContent, width: width}}>
+      <View style={{...styles.modalContent, width: width}}>
             <View style={styles.titleContainer}>
               <Text style={styles.title}>{data.name}</Text>
               <Pressable onPress={onClose}>
                 <MaterialIcons name="close" color="#fff" size={22} />
               </Pressable>
             </View>
-            <View style={{width: width, height: width, padding: '10px'}}>
+            <View style={{width: width, height: width, padding: 10}}>
                 <ImageZoom
                     style={styles.image}
                     source={ImageManifest[data.localImagePath]}
@@ -63,7 +61,6 @@ export default function ArmyCardDetail({ isVisible, onClose, data }: Props) {
                 </ScrollView>
             }
           </View>
-      </GestureHandlerRootView>
     </Modal>
   );
 }
