@@ -1,20 +1,22 @@
-import { StyleSheet, StyleProp, ViewStyle } from 'react-native';
+import { StyleSheet, StyleProp, ViewStyle, Pressable } from 'react-native';
 import { Image } from 'expo-image';
 import ImageManifest from '@/data/ImageManifest.js'
-import { useWindowDimensions } from 'react-native';
 
 type Props = {
   imagePath: string;
   style?: StyleProp<ViewStyle>;
+  onPress?: () => void;
 };
 
-export default function ArmyCard({ imagePath, style }: Props) {
+export default function ArmyCard({ imagePath, style, onPress }: Props) {
   return (
-    <Image 
-      source={ImageManifest[imagePath]} 
-      style={[styles.image, style]}
-      contentFit="contain"
-    />
+    <Pressable onPress={onPress} style={{ flex: 1 }}>
+      <Image 
+        source={ImageManifest[imagePath]} 
+        style={[styles.image, style]}
+        contentFit="contain"
+      />
+    </Pressable>
   );
 }
 

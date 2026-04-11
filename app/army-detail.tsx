@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   useWindowDimensions,
 } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -19,6 +20,8 @@ import data from '@/data/heroscape-cards.json';
 import { Army, ArmyCardEntry } from '@/types/army';
 import { getArmies, updateArmy, updateCardQuantity, removeCardFromArmy, addCardToArmy } from '@/utils/armyStorage';
 import ArmyCard from '@/components/armyCard';
+import SelectableCard from '@/components/SelectableCard';
+import ArmyCardDetail from '@/components/armyCardDetail';
 
 function getCardById(cardId: string) {
   return data.cards.find((c: any) => c.id === cardId);
@@ -46,6 +49,8 @@ export default function ArmyDetailScreen() {
   const [filterArmyCost, setFilterArmyCost] = useState('');
   const [filterArmyCostOperator, setFilterArmyCostOperator] = useState<string>('=');
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedCardData, setSelectedCardData] = useState<any | undefined>(undefined);
+  const [openCardDetail, setOpenCardDetail] = useState(false);
   
   const filterOptions = {
     factions: [...new Set(data.cards.map((c: any) => c.faction))].sort(),
@@ -204,20 +209,27 @@ export default function ArmyDetailScreen() {
     const isUnique = card.type?.includes('Unique');
     const canAdd = !isUnique || item.quantity === 0;
 
-    const handleDecrement = async () => {
+    const handleDecrement = async (e: any) => {
+      e.stopPropagation();
       if (item.quantity > 0) {
         await handleQuantityChange(item.cardId, -1);
       }
     };
 
-    const handleIncrement = async () => {
+    const handleIncrement = async (e: any) => {
+      e.stopPropagation();
       if (canAdd) {
         await handleQuantityChange(item.cardId, 1);
       }
     };
 
+    const handleViewDetails = () => {
+      setSelectedCardData(card);
+      setOpenCardDetail(true);
+    };
+
     return (
-      <View style={styles.armyCard}>
+      <Pressable style={styles.armyCard} onPress={handleViewDetails}>
         <View style={styles.cardImageWrapper}>
           <ArmyCard imagePath={card.localImagePath} style={styles.cardImage} />
           <View style={styles.costBadge}>
@@ -249,7 +261,7 @@ export default function ArmyDetailScreen() {
           </View>
           <Text style={styles.cardPoints}>{cardTotal} pts</Text>
         </View>
-      </View>
+      </Pressable>
     );
   };
 
@@ -258,25 +270,22 @@ export default function ArmyDetailScreen() {
     const isUnique = item.type?.includes('Unique');
     const isMaxed = isUnique && armyCard && armyCard.quantity >= 1;
     
+    const handleViewDetails = () => {
+      setSelectedCardData(item);
+      setOpenCardDetail(true);
+    };
+    
     return (
       <View style={styles.pickerCardWrapper}>
-        <Pressable 
-          style={{ flex: 1, opacity: isMaxed ? 0.5 : 1 }} 
-          onPress={() => !isMaxed && handleAddCard(item.id)}
-          onLongPress={() => armyCard && handleRemoveCard(item.id)}
-        >
-          <View style={styles.pickerCardInner}>
-            <ArmyCard imagePath={item.localImagePath} />
-            <View style={styles.pickerCardCostBadge}>
-              <Text style={styles.pickerCardCostText}>{item.armyCost}</Text>
-            </View>
-            {armyCard && armyCard.quantity > 0 && (
-              <View style={styles.pickerCardQuantityBadge}>
-                <Text style={styles.pickerCardQuantityText}>{armyCard.quantity}</Text>
-              </View>
-            )}
-          </View>
-        </Pressable>
+        <SelectableCard
+          imagePath={item.localImagePath}
+          armyCost={item.armyCost}
+          quantity={armyCard?.quantity || 0}
+          onAdd={() => !isMaxed && handleAddCard(item.id)}
+          onRemove={() => handleRemoveCard(item.id)}
+          onViewDetails={handleViewDetails}
+          disabled={isMaxed}
+        />
       </View>
     );
   };
@@ -375,8 +384,9 @@ export default function ArmyDetailScreen() {
       />
 
       <Modal visible={showCardPicker} animationType="slide" presentationStyle="pageSheet">
-        <SafeAreaView style={styles.pickerContainer}>
-          <View style={styles.pickerHeader}>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <SafeAreaView style={styles.pickerContainer}>
+            <View style={styles.pickerHeader}>
             <Text style={styles.pickerTitle}>Select Card</Text>
             <Pressable onPress={() => setShowCardPicker(false)}>
               <Ionicons name="close" size={28} color="#fff" />
@@ -656,6 +666,7 @@ export default function ArmyDetailScreen() {
             contentContainerStyle={styles.pickerList}
           />
         </SafeAreaView>
+        </GestureHandlerRootView>
       </Modal>
 
       <Modal visible={showSettings} animationType="slide" transparent>
@@ -711,6 +722,12 @@ export default function ArmyDetailScreen() {
           </View>
         </View>
       </Modal>
+
+      <ArmyCardDetail 
+        isVisible={openCardDetail} 
+        onClose={() => setOpenCardDetail(false)} 
+        data={selectedCardData} 
+      />
     </SafeAreaView>
   );
 }
