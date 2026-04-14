@@ -9,10 +9,11 @@ type Props = {
 };
 
 export default function ArmyCard({ imagePath, style, onPress }: Props) {
+  const normalizedPath = imagePath ? imagePath.replace(/\\/g, '/') : '';
   return (
     <Pressable onPress={onPress} style={{ flex: 1 }}>
       <Image 
-        source={ImageManifest[imagePath]} 
+        source={ImageManifest[normalizedPath]} 
         style={[styles.image, style]}
         contentFit="contain"
       />

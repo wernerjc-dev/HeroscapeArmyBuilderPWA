@@ -18,7 +18,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import data from '@/data/heroscape-cards.json';
 import { Army, ArmyCardEntry } from '@/types/army';
-import { getArmies, updateArmy, updateCardQuantity, removeCardFromArmy, addCardToArmy } from '@/utils/armyStorage';
+import { getArmies, updateArmy, updateCardQuantity, removeCardFromArmy, addCardToArmy, decrementCardInArmy } from '@/utils/armyStorage';
 import ArmyCard from '@/components/armyCard';
 import SelectableCard from '@/components/SelectableCard';
 import ArmyCardDetail from '@/components/armyCardDetail';
@@ -52,12 +52,19 @@ export default function ArmyDetailScreen() {
   const [selectedCardData, setSelectedCardData] = useState<any | undefined>(undefined);
   const [openCardDetail, setOpenCardDetail] = useState(false);
   
+  const getClasses = (card: any) => {
+    if (!card || !card.attributes) return [];
+    const cls = card.attributes.class;
+    if (Array.isArray(cls)) return cls;
+    return cls ? [cls] : [];
+  };
+  
   const filterOptions = {
     factions: [...new Set(data.cards.map((c: any) => c.faction))].sort(),
     cardTypes: [...new Set(data.cards.map((c: any) => c.type))].sort(),
     sizes: [...new Set(data.cards.map((c: any) => c.attributes.size))].sort(),
     species: [...new Set(data.cards.map((c: any) => c.attributes.species))].sort(),
-    classes: [...new Set(data.cards.map((c: any) => c.attributes.class))].sort(),
+    classes: [...new Set(data.cards.flatMap((c: any) => getClasses(c)))].sort(),
     personalities: [...new Set(data.cards.map((c: any) => c.attributes.personality))].sort(),
   };
   
@@ -127,6 +134,14 @@ export default function ArmyDetailScreen() {
     await loadArmy();
   };
 
+  const handleDecrementCard = async (cardId: string) => {
+    if (!army) return;
+    const existingEntry = army.cards.find((c) => c.cardId === cardId);
+    if (!existingEntry) return;
+    await decrementCardInArmy(army.id, cardId);
+    await loadArmy();
+  };
+
   const handleQuantityChange = async (cardId: string, delta: number) => {
     if (!army) return;
     const entry = army.cards.find((c) => c.cardId === cardId);
@@ -183,8 +198,11 @@ export default function ArmyDetailScreen() {
     if (selectedSpecies.length > 0 && !selectedSpecies.includes(c.attributes.species)) {
       return false;
     }
-    if (selectedClasses.length > 0 && !selectedClasses.includes(c.attributes.class)) {
-      return false;
+    if (selectedClasses.length > 0) {
+      const cardClasses = getClasses(c);
+      if (!selectedClasses.some(cls => cardClasses.includes(cls))) {
+        return false;
+      }
     }
     if (selectedPersonalities.length > 0 && !selectedPersonalities.includes(c.attributes.personality)) {
       return false;
@@ -282,7 +300,7 @@ export default function ArmyDetailScreen() {
           armyCost={item.armyCost}
           quantity={armyCard?.quantity || 0}
           onAdd={() => !isMaxed && handleAddCard(item.id)}
-          onRemove={() => handleRemoveCard(item.id)}
+          onRemove={() => handleDecrementCard(item.id)}
           onViewDetails={handleViewDetails}
           disabled={isMaxed}
         />

@@ -5,27 +5,37 @@ const DB_NAME = 'armies.db';
 
 let db: SQLite.SQLiteDatabase | null = null;
 
+let dbInitPromise: Promise<SQLite.SQLiteDatabase> | null = null;
+
 async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
   if (db) return db;
-  db = await SQLite.openDatabaseAsync(DB_NAME);
-  await db.execAsync(`
-    CREATE TABLE IF NOT EXISTS armies (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      pointTotal INTEGER NOT NULL,
-      contemporaryOnly INTEGER NOT NULL DEFAULT 1,
-      createdAt TEXT NOT NULL,
-      updatedAt TEXT NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS army_cards (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      armyId TEXT NOT NULL,
-      cardId TEXT NOT NULL,
-      quantity INTEGER NOT NULL DEFAULT 1,
-      FOREIGN KEY (armyId) REFERENCES armies(id) ON DELETE CASCADE
-    );
-  `);
-  return db;
+  
+  if (!dbInitPromise) {
+    dbInitPromise = (async () => {
+      const database = await SQLite.openDatabaseAsync(DB_NAME);
+      await database.execAsync(`
+        CREATE TABLE IF NOT EXISTS armies (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          pointTotal INTEGER NOT NULL,
+          contemporaryOnly INTEGER NOT NULL DEFAULT 1,
+          createdAt TEXT NOT NULL,
+          updatedAt TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS army_cards (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          armyId TEXT NOT NULL,
+          cardId TEXT NOT NULL,
+          quantity INTEGER NOT NULL DEFAULT 1,
+          FOREIGN KEY (armyId) REFERENCES armies(id) ON DELETE CASCADE
+        );
+      `);
+      db = database;
+      return database;
+    })();
+  }
+  
+  return dbInitPromise;
 }
 
 function generateId(): string {
@@ -141,23 +151,28 @@ export async function deleteArmy(armyId: string): Promise<void> {
 export async function addCardToArmy(armyId: string, cardId: string, quantity: number = 1): Promise<Army> {
   const database = await getDatabase();
   
-  const existing = await database.getFirstAsync<{ id: number; quantity: number }>(
+  // First check if card exists
+  const existingRows = await database.getAllAsync<{ id: number; quantity: number }>(
     'SELECT id, quantity FROM army_cards WHERE armyId = ? AND cardId = ?',
     [armyId, cardId]
   );
   
-  if (existing) {
+  if (existingRows && existingRows.length > 0) {
+    // Card exists, increment quantity
+    const row = existingRows[0];
     await database.runAsync(
       'UPDATE army_cards SET quantity = quantity + ? WHERE id = ?',
-      [quantity, existing.id]
+      [quantity, row.id]
     );
   } else {
+    // Card doesn't exist, insert new
     await database.runAsync(
       'INSERT INTO army_cards (armyId, cardId, quantity) VALUES (?, ?, ?)',
       [armyId, cardId, quantity]
     );
   }
   
+  // Reload army to get updated data
   const armies = await getArmies();
   const army = armies.find(a => a.id === armyId);
   if (!army) throw new Error('Army not found');
@@ -171,6 +186,40 @@ export async function removeCardFromArmy(armyId: string, cardId: string): Promis
     'DELETE FROM army_cards WHERE armyId = ? AND cardId = ?',
     [armyId, cardId]
   );
+  
+  const armies = await getArmies();
+  const army = armies.find(a => a.id === armyId);
+  if (!army) throw new Error('Army not found');
+  
+  return army;
+}
+
+export async function decrementCardInArmy(armyId: string, cardId: string): Promise<Army> {
+  const database = await getDatabase();
+  
+  const allRows = await database.getAllAsync<{ quantity: number }>(
+    'SELECT quantity FROM army_cards WHERE armyId = ? AND cardId = ?',
+    [armyId, cardId]
+  );
+  
+  if (!allRows || allRows.length === 0) {
+    const armies = await getArmies();
+    return armies.find(a => a.id === armyId)!;
+  }
+  
+  const existing = allRows[0];
+  
+  if (existing.quantity <= 1) {
+    await database.runAsync(
+      'DELETE FROM army_cards WHERE armyId = ? AND cardId = ?',
+      [armyId, cardId]
+    );
+  } else {
+    await database.runAsync(
+      'UPDATE army_cards SET quantity = quantity - 1 WHERE armyId = ? AND cardId = ?',
+      [armyId, cardId]
+    );
+  }
   
   const armies = await getArmies();
   const army = armies.find(a => a.id === armyId);

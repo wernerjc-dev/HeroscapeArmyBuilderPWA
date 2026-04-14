@@ -14,52 +14,43 @@ type Props = {
   disabled?: boolean;
 };
 
-const SWIPE_THRESHOLD = 50;
+const SWIPE_THRESHOLD = 40;
 
 export default function SelectableCard({ imagePath, armyCost, quantity, onAdd, onRemove, onViewDetails, disabled }: Props) {
   const translateX = useSharedValue(0);
-
-  const handleAdd = () => {
-    onAdd();
-  };
-
-  const handleRemove = () => {
-    onRemove();
-  };
+  const normalizedPath = imagePath ? imagePath.replace(/\\/g, '/') : '';
 
   const panGesture = Gesture.Pan()
-    .minDistance(20)
+    .activeOffsetX([-10, 10])
+    .failOffsetY([-5, 5])
     .onUpdate((e) => {
+      // Allow vertical scrolling - only move for horizontal
       if (Math.abs(e.translationX) > Math.abs(e.translationY)) {
         translateX.value = e.translationX;
       }
     })
     .onEnd((e) => {
+      // Only trigger for horizontal swipe, not vertical scroll
       if (Math.abs(e.translationX) > Math.abs(e.translationY)) {
         if (e.translationX < -SWIPE_THRESHOLD) {
-          runOnJS(handleRemove)();
+          runOnJS(onRemove)();
         } else if (e.translationX > SWIPE_THRESHOLD) {
-          runOnJS(handleAdd)();
+          runOnJS(onAdd)();
         }
       }
       translateX.value = withSpring(0);
     });
 
   const longPressGesture = Gesture.LongPress()
-    .minDuration(500)
+    .minDuration(400)
     .onEnd(() => {
       runOnJS(onViewDetails)();
     });
 
-  const singleTapGesture = Gesture.Tap()
+  const tapGesture = Gesture.Tap()
     .onEnd(() => {
-      runOnJS(handleAdd)();
+      runOnJS(onAdd)();
     });
-
-  const composed = Gesture.Race(
-    longPressGesture,
-    Gesture.Simultaneous(panGesture, singleTapGesture)
-  );
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
@@ -68,26 +59,30 @@ export default function SelectableCard({ imagePath, armyCost, quantity, onAdd, o
   return (
     <View style={styles.container}>
       <View style={styles.actionHint}>
-        <Text style={styles.actionText}>← Add</Text>
-        <Text style={styles.actionText}>Remove →</Text>
+        <Text style={styles.actionText}>← Remove</Text>
+        <Text style={styles.actionText}>Add →</Text>
       </View>
-      <GestureDetector gesture={composed}>
+      <GestureDetector gesture={panGesture}>
         <Animated.View style={[styles.cardWrapper, animatedStyle, disabled && styles.disabled]}>
-          <View style={styles.cardInner}>
-            <Image
-              source={ImageManifest[imagePath]}
-              style={styles.image}
-              contentFit="contain"
-            />
-            <View style={styles.costBadge}>
-              <Text style={styles.costText}>{armyCost}</Text>
-            </View>
-            {quantity > 0 && (
-              <View style={styles.quantityBadge}>
-                <Text style={styles.quantityText}>{quantity}</Text>
+          <GestureDetector gesture={longPressGesture}>
+            <GestureDetector gesture={tapGesture}>
+              <View style={styles.cardInner}>
+                <Image
+                  source={ImageManifest[normalizedPath]}
+                  style={styles.image}
+                  contentFit="contain"
+                />
+                {quantity > 0 && (
+                  <View style={styles.quantityBadge}>
+                    <Text style={styles.quantityText}>{quantity}</Text>
+                  </View>
+                )}
+                <View style={styles.costBadge}>
+                  <Text style={styles.costText}>{armyCost}</Text>
+                </View>
               </View>
-            )}
-          </View>
+            </GestureDetector>
+          </GestureDetector>
         </Animated.View>
       </GestureDetector>
     </View>
@@ -97,7 +92,8 @@ export default function SelectableCard({ imagePath, armyCost, quantity, onAdd, o
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 4,
+    padding: 6,
+    marginLeft: -4
   },
   actionHint: {
     position: 'absolute',
@@ -118,6 +114,7 @@ const styles = StyleSheet.create({
   },
   cardWrapper: {
     flex: 1,
+    aspectRatio: 1,
     backgroundColor: '#1a1a1a',
     borderRadius: 8,
     overflow: 'hidden',
@@ -131,14 +128,12 @@ const styles = StyleSheet.create({
   },
   costBadge: {
     position: 'absolute',
-    top: 4,
+    bottom: 4,
     right: 4,
     backgroundColor: '#703095',
-    borderRadius: 12,
-    width: 24,
-    height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
   costText: {
     color: '#fff',
@@ -147,7 +142,7 @@ const styles = StyleSheet.create({
   },
   quantityBadge: {
     position: 'absolute',
-    bottom: 4,
+    top: 4,
     right: 4,
     backgroundColor: '#00aa00',
     borderRadius: 12,

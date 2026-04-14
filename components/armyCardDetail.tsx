@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Modal, View, Text, Pressable, StyleSheet, ScrollView, Image, useWindowDimensions } from 'react-native';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS } from 'react-native-reanimated';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import ImageManifest from '@/data/ImageManifest.js';
-import { GestureHandlerRootView, GestureDetector, Gesture } from 'react-native-gesture-handler';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
 type Props = {
   isVisible: boolean;
@@ -13,24 +13,21 @@ type Props = {
 
 function ZoomableImage({ uri }: { uri: any }) {
   const scale = useSharedValue(1);
-  const savedScale = useSharedValue(1);
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
+  const savedScale = useSharedValue(1);
   const savedTranslateX = useSharedValue(0);
   const savedTranslateY = useSharedValue(0);
 
   const pinchGesture = Gesture.Pinch()
     .onUpdate((e) => {
-      scale.value = savedScale.value * e.scale;
+      const newScale = savedScale.value * e.scale;
+      scale.value = Math.max(1, Math.min(4, newScale));
     })
     .onEnd(() => {
       if (scale.value < 1) {
         scale.value = withSpring(1);
         savedScale.value = 1;
-        translateX.value = withSpring(0);
-        translateY.value = withSpring(0);
-        savedTranslateX.value = 0;
-        savedTranslateY.value = 0;
       } else if (scale.value > 4) {
         scale.value = withSpring(4);
         savedScale.value = 4;
@@ -51,20 +48,19 @@ function ZoomableImage({ uri }: { uri: any }) {
       savedTranslateY.value = translateY.value;
     });
 
+  const resetZoom = () => {
+    scale.value = withSpring(1);
+    translateX.value = withSpring(0);
+    translateY.value = withSpring(0);
+    savedScale.value = 1;
+    savedTranslateX.value = 0;
+    savedTranslateY.value = 0;
+  };
+
   const doubleTapGesture = Gesture.Tap()
     .numberOfTaps(2)
     .onEnd(() => {
-      if (scale.value > 1) {
-        scale.value = withSpring(1);
-        savedScale.value = 1;
-        translateX.value = withSpring(0);
-        translateY.value = withSpring(0);
-        savedTranslateX.value = 0;
-        savedTranslateY.value = 0;
-      } else {
-        scale.value = withSpring(2);
-        savedScale.value = 2;
-      }
+      runOnJS(resetZoom)();
     });
 
   const composed = Gesture.Simultaneous(pinchGesture, panGesture, doubleTapGesture);
@@ -91,7 +87,10 @@ function ZoomableImage({ uri }: { uri: any }) {
 export default function ArmyCardDetail({ isVisible, onClose, data }: Props) {
   const { width, height } = useWindowDimensions();
 
-  if (!data) return null;
+  if (!data || !data.localImagePath) return null;
+
+  const imagePath = data.localImagePath.replace(/\\/g, '/');
+  const imageSource = ImageManifest[imagePath];
 
   return (
     <Modal animationType="slide" transparent={true} visible={isVisible}>
@@ -103,12 +102,16 @@ export default function ArmyCardDetail({ isVisible, onClose, data }: Props) {
               <MaterialIcons name="close" color="#fff" size={22} />
             </Pressable>
             <View style={[styles.zoomContainer, { height: width }]}>
-              <ZoomableImage uri={ImageManifest[data.localImagePath]} />
+              {imageSource ? (
+                <ZoomableImage uri={imageSource} />
+              ) : (
+                <Text style={styles.noImage}>Image not found</Text>
+              )}
             </View>
             <ScrollView style={styles.detailContainer} contentContainerStyle={styles.detailContent}>
               <View style={styles.textRow}>
                 <Text style={styles.textLabel}>Contemporary Legal:</Text>
-                <Text style={styles.text}>{data.attributes.contemporaryLegal ? "Yes" : "No"}</Text>
+                <Text style={styles.text}>{data.attributes?.contemporaryLegal ? "Yes" : "No"}</Text>
               </View>
               <View style={styles.textRow}>
                 <Text style={styles.textLabel}>Homeworld:</Text>
@@ -179,6 +182,10 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
+  },
+  noImage: {
+    color: '#aaa',
+    fontSize: 14,
   },
   detailContainer: {
     flex: 1,

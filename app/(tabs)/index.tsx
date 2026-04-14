@@ -27,12 +27,19 @@ export default function SearchScreen() {
   const [filterArmyCostOperator, setFilterArmyCostOperator] = useState<string>('=');
   const [cardNameFilter, setCardNameFilter] = useState('');
 
+  const getClasses = (card: any) => {
+    if (!card || !card.attributes) return [];
+    const cls = card.attributes.class;
+    if (Array.isArray(cls)) return cls;
+    return cls ? [cls] : [];
+  };
+
   const filterOptions = {
     factions: [...new Set(data.cards.map((c: any) => c.faction))].sort(),
     cardTypes: [...new Set(data.cards.map((c: any) => c.type))].sort(),
     sizes: [...new Set(data.cards.map((c: any) => c.attributes.size))].sort(),
     species: [...new Set(data.cards.map((c: any) => c.attributes.species))].sort(),
-    classes: [...new Set(data.cards.map((c: any) => c.attributes.class))].sort(),
+    classes: [...new Set(data.cards.flatMap((c: any) => getClasses(c)))].sort(),
     personalities: [...new Set(data.cards.map((c: any) => c.attributes.personality))].sort(),
     homeworlds: [...new Set(data.cards.map((c: any) => c.homeworld))].sort(),
     sets: [...new Set(data.cards.map((c: any) => c.set))].sort(),
@@ -77,8 +84,11 @@ export default function SearchScreen() {
     if (selectedSpecies.length > 0 && !selectedSpecies.includes(c.attributes.species)) {
       return false;
     }
-    if (selectedClasses.length > 0 && !selectedClasses.includes(c.attributes.class)) {
-      return false;
+    if (selectedClasses.length > 0) {
+      const cardClasses = getClasses(c);
+      if (!selectedClasses.some(cls => cardClasses.includes(cls))) {
+        return false;
+      }
     }
     if (selectedPersonalities.length > 0 && !selectedPersonalities.includes(c.attributes.personality)) {
       return false;
