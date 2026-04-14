@@ -169,7 +169,7 @@ export default function ArmiesListScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
         <TextInput

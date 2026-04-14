@@ -48,6 +48,7 @@ export default function ArmyDetailScreen() {
   const [filterContemporaryOnly, setFilterContemporaryOnly] = useState(false);
   const [filterArmyCost, setFilterArmyCost] = useState('');
   const [filterArmyCostOperator, setFilterArmyCostOperator] = useState<string>('=');
+  const [fitsInArmy, setFitsInArmy] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedCardData, setSelectedCardData] = useState<any | undefined>(undefined);
   const [openCardDetail, setOpenCardDetail] = useState(false);
@@ -70,7 +71,7 @@ export default function ArmyDetailScreen() {
   
   const hasActiveFilters = selectedFactions.length > 0 || selectedCardTypes.length > 0 || 
     selectedSizes.length > 0 || selectedSpecies.length > 0 || selectedClasses.length > 0 ||
-    selectedPersonalities.length > 0 || filterContemporaryOnly || filterArmyCost !== '';
+    selectedPersonalities.length > 0 || filterContemporaryOnly || filterArmyCost !== '' || fitsInArmy;
   
   const clearFilters = () => {
     setSelectedFactions([]);
@@ -82,6 +83,7 @@ export default function ArmyDetailScreen() {
     setFilterContemporaryOnly(false);
     setFilterArmyCost('');
     setFilterArmyCostOperator('=');
+    setFitsInArmy(false);
   };
 
   const loadArmy = useCallback(async () => {
@@ -216,6 +218,10 @@ export default function ArmyDetailScreen() {
       if (filterArmyCostOperator === '>' && c.armyCost <= cost) return false;
       if (filterArmyCostOperator === '<' && c.armyCost >= cost) return false;
     }
+    if (fitsInArmy) {
+      const remainingPoints = (army?.pointTotal || 0) - totalPoints;
+      if (c.armyCost > remainingPoints) return false;
+    }
     return true;
   });
 
@@ -341,11 +347,11 @@ export default function ArmyDetailScreen() {
 
       <View style={styles.actionButtons}>
         <Pressable style={styles.actionButton} onPress={() => setShowCardPicker(true)}>
-          <Ionicons name="add-circle-outline" size={20} color="#703095" />
+          <Ionicons name="add-circle-outline" size={20} color="#fff" />
           <Text style={styles.actionButtonText}>Add Card</Text>
         </Pressable>
         <Pressable style={styles.actionButton} onPress={() => setShowSettings(true)}>
-          <Ionicons name="settings-outline" size={20} color="#703095" />
+          <Ionicons name="settings-outline" size={20} color="#fff" />
           <Text style={styles.actionButtonText}>Settings</Text>
         </Pressable>
       </View>
@@ -383,7 +389,7 @@ export default function ArmyDetailScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.navHeader}>
         <Pressable onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
@@ -403,7 +409,7 @@ export default function ArmyDetailScreen() {
 
       <Modal visible={showCardPicker} animationType="slide" presentationStyle="pageSheet">
         <GestureHandlerRootView style={{ flex: 1 }}>
-          <SafeAreaView style={styles.pickerContainer}>
+          <SafeAreaView style={styles.pickerContainer} edges={['bottom']}>
             <View style={styles.pickerHeader}>
             <Text style={styles.pickerTitle}>Select Card</Text>
             <Pressable onPress={() => setShowCardPicker(false)}>
@@ -499,6 +505,23 @@ export default function ArmyDetailScreen() {
                     keyboardType="number-pad"
                   />
                 </View>
+              </View>
+
+              <View style={styles.filterSection}>
+                <Pressable 
+                  style={styles.checkboxRow}
+                  onPress={() => setFitsInArmy(!fitsInArmy)}
+                >
+                  <View style={[
+                    styles.checkbox,
+                    fitsInArmy && styles.checkboxChecked
+                  ]}>
+                    {fitsInArmy && (
+                      <Ionicons name="checkmark" size={14} color="#fff" />
+                    )}
+                  </View>
+                  <Text style={styles.checkboxLabel}>Points Remaining: {(army?.pointTotal || 0) - totalPoints}</Text>
+                </Pressable>
               </View>
 
               <View style={styles.filterSection}>
@@ -689,7 +712,7 @@ export default function ArmyDetailScreen() {
 
       <Modal visible={showSettings} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <SafeAreaView style={styles.modalContent} edges={['bottom']}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Army Settings</Text>
               <Pressable onPress={() => setShowSettings(false)}>
@@ -737,7 +760,7 @@ export default function ArmyDetailScreen() {
             <Pressable style={styles.saveButton} onPress={handleSaveSettings}>
               <Text style={styles.saveButtonText}>Save Changes</Text>
             </Pressable>
-          </View>
+          </SafeAreaView>
         </View>
       </Modal>
 
@@ -783,7 +806,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: 16,
-    paddingBottom: 40,
+    paddingBottom: 100,
   },
   header: {
     marginBottom: 16,
@@ -838,14 +861,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#703095',
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: '#703095',
   },
   actionButtonText: {
-    color: '#703095',
+    color: '#fff',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -1066,6 +1089,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 0,
+    marginHorizontal: 4,
   },
   pickerStatText: {
     color: '#aaa',

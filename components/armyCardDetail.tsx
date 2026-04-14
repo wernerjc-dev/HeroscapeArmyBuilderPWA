@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Modal, View, Text, Pressable, StyleSheet, ScrollView, Image, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS } from 'react-native-reanimated';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import ImageManifest from '@/data/ImageManifest.js';
@@ -95,7 +96,7 @@ export default function ArmyCardDetail({ isVisible, onClose, data }: Props) {
   return (
     <Modal animationType="slide" transparent={true} visible={isVisible}>
       <GestureHandlerRootView style={styles.gestureRoot}>
-        <View style={[styles.modalContainer, { height }]}>
+        <SafeAreaView style={[styles.modalContainer, { height }]} edges={['bottom']}>
           <View style={[styles.modalContent, { width, height }]}>
             <Pressable onPress={onClose} style={styles.titleContainer}>
               <Text style={styles.title}>{data.name}</Text>
@@ -131,7 +132,7 @@ export default function ArmyCardDetail({ isVisible, onClose, data }: Props) {
               )}
             </ScrollView>
           </View>
-        </View>
+        </SafeAreaView>
       </GestureHandlerRootView>
     </Modal>
   );

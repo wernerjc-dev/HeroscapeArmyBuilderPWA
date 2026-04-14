@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 6,
-    marginLeft: -4
+    marginLeft: -5
   },
   actionHint: {
     position: 'absolute',

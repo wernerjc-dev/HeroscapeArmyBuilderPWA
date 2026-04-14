@@ -7,7 +7,11 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
         <GestureHandlerRootView>
-            <Stack screenOptions={{ headerShown: false }}>
+            <Stack 
+              screenOptions={{ 
+                headerShown: false,
+              }}
+            >
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                 <Stack.Screen name="+not-found" />
             </Stack>
