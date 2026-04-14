@@ -255,7 +255,7 @@ export default function ArmyDetailScreen() {
     return (
       <Pressable style={styles.armyCard} onPress={handleViewDetails}>
         <View style={styles.cardImageWrapper}>
-          <ArmyCard imagePath={card.localImagePath} style={styles.cardImage} />
+          <ArmyCard imagePath={card.localImagePath} style={styles.cardImage} onPress={handleViewDetails} />
           <View style={styles.costBadge}>
             <Text style={styles.costBadgeText}>{card.armyCost}</Text>
           </View>
