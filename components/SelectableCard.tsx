@@ -12,11 +12,12 @@ type Props = {
   onRemove: () => void;
   onViewDetails: () => void;
   disabled?: boolean;
+  showCost?: boolean;
 };
 
 const SWIPE_THRESHOLD = 40;
 
-export default function SelectableCard({ imagePath, armyCost, quantity, onAdd, onRemove, onViewDetails, disabled }: Props) {
+export default function SelectableCard({ imagePath, armyCost, quantity, onAdd, onRemove, onViewDetails, disabled, showCost = true }: Props) {
   const translateX = useSharedValue(0);
   const normalizedPath = imagePath ? imagePath.replace(/\\/g, '/') : '';
 
@@ -77,9 +78,11 @@ export default function SelectableCard({ imagePath, armyCost, quantity, onAdd, o
                     <Text style={styles.quantityText}>{quantity}</Text>
                   </View>
                 )}
-                <View style={styles.costBadge}>
-                  <Text style={styles.costText}>{armyCost}</Text>
-                </View>
+                {showCost && (
+                  <View style={styles.costBadge}>
+                    <Text style={styles.costText}>{armyCost}</Text>
+                  </View>
+                )}
               </View>
             </GestureDetector>
           </GestureDetector>

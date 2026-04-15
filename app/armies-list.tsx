@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     flex: 1,
     color: '#fff',
     fontSize: 16,
-    paddingVertical: 0,
+    paddingVertical: 10,
   },
   sortButton: {
     padding: 8,

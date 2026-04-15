@@ -8,7 +8,7 @@ import data from '@/data/heroscape-cards.json';
 import ArmyCard from '@/components/armyCard';
 import ArmyCardDetail from '@/components/armyCardDetail';
 import ArmyCardPicker from '@/components/ArmyCardPicker';
-import { getCollection } from '@/utils/collectionStorage';
+import { getCollection, addCardToCollection, removeCardFromCollection, updateCardQuantityInCollection } from '@/utils/collectionStorage';
 import { CollectionEntry } from '@/types/army';
 
 export default function CollectionScreen() {
@@ -57,15 +57,27 @@ export default function CollectionScreen() {
   }, [collection]);
 
   const handleAddCard = async (cardId: string) => {
-    const existingIndex = collection.findIndex(c => c.cardId === cardId);
-    if (existingIndex >= 0) {
-      const updated = [...collection];
-      updated[existingIndex] = { ...updated[existingIndex], quantity: updated[existingIndex].quantity + 1 };
-      setCollection(updated);
-    } else {
-      setCollection([...collection, { cardId, quantity: 1 }]);
+    try {
+      const updatedCollection = await addCardToCollection(cardId, 1);
+      setCollection(updatedCollection.cards);
+    } catch (error) {
+      console.error('Error adding card to collection:', error);
     }
-    setShowAddCard(false);
+  };
+
+  const handleRemoveCard = async (cardId: string) => {
+    try {
+      const existingCard = collection.find(c => c.cardId === cardId);
+      if (existingCard && existingCard.quantity > 1) {
+        const updatedCollection = await updateCardQuantityInCollection(cardId, existingCard.quantity - 1);
+        setCollection(updatedCollection.cards);
+      } else {
+        const updatedCollection = await removeCardFromCollection(cardId);
+        setCollection(updatedCollection.cards);
+      }
+    } catch (error) {
+      console.error('Error removing card from collection:', error);
+    }
   };
 
   const getClasses = (card: any) => {
@@ -530,7 +542,8 @@ export default function CollectionScreen() {
           isVisible={showAddCard}
           onClose={() => setShowAddCard(false)}
           onSelectCard={handleAddCard}
-          excludeCardIds={collection.map(c => c.cardId)}
+          onRemoveCard={handleRemoveCard}
+          collection={collection}
         />
       </SafeAreaView>
     );
@@ -580,7 +593,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginHorizontal: 16,
-    marginVertical: 8,
+    marginVertical: 0,
     gap: 8,
   },
   searchContainer: {
