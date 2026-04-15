@@ -19,6 +19,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import data from '@/data/heroscape-cards.json';
 import { Army, ArmyCardEntry } from '@/types/army';
 import { getArmies, updateArmy, updateCardQuantity, removeCardFromArmy, addCardToArmy, decrementCardInArmy } from '@/utils/armyStorage';
+import { getCollection } from '@/utils/collectionStorage';
 import ArmyCard from '@/components/armyCard';
 import SelectableCard from '@/components/SelectableCard';
 import ArmyCardDetail from '@/components/armyCardDetail';
@@ -32,6 +33,7 @@ export default function ArmyDetailScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const [army, setArmy] = useState<Army | null>(null);
+  const [collection, setCollection] = useState<CollectionEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCardPicker, setShowCardPicker] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -46,6 +48,7 @@ export default function ArmyDetailScreen() {
   const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
   const [selectedPersonalities, setSelectedPersonalities] = useState<string[]>([]);
   const [filterContemporaryOnly, setFilterContemporaryOnly] = useState(false);
+  const [filterCollectionOnly, setFilterCollectionOnly] = useState(false);
   const [filterArmyCost, setFilterArmyCost] = useState('');
   const [filterArmyCostOperator, setFilterArmyCostOperator] = useState<string>('=');
   const [fitsInArmy, setFitsInArmy] = useState(false);
@@ -71,7 +74,7 @@ export default function ArmyDetailScreen() {
   
   const hasActiveFilters = selectedFactions.length > 0 || selectedCardTypes.length > 0 || 
     selectedSizes.length > 0 || selectedSpecies.length > 0 || selectedClasses.length > 0 ||
-    selectedPersonalities.length > 0 || filterContemporaryOnly || filterArmyCost !== '' || fitsInArmy;
+    selectedPersonalities.length > 0 || filterContemporaryOnly || filterCollectionOnly || filterArmyCost !== '' || fitsInArmy;
   
   const clearFilters = () => {
     setSelectedFactions([]);
@@ -81,6 +84,7 @@ export default function ArmyDetailScreen() {
     setSelectedClasses([]);
     setSelectedPersonalities([]);
     setFilterContemporaryOnly(false);
+    setFilterCollectionOnly(false);
     setFilterArmyCost('');
     setFilterArmyCostOperator('=');
     setFitsInArmy(false);
@@ -94,8 +98,11 @@ export default function ArmyDetailScreen() {
       setName(found.name);
       setPointTotal(found.pointTotal.toString());
       setContemporaryOnly(found.contemporaryOnly);
-      setFilterContemporaryOnly(found.contemporaryOnly);
     }
+    
+    const collectionData = await getCollection();
+    setCollection(collectionData.cards);
+    
     setLoading(false);
   }, [id]);
 
@@ -211,6 +218,12 @@ export default function ArmyDetailScreen() {
     }
     if (filterContemporaryOnly && !c.attributes.contemporaryLegal) {
       return false;
+    }
+    if (filterCollectionOnly) {
+      const collectionCard = collection.find(entry => entry.cardId === c.id);
+      if (!collectionCard) {
+        return false;
+      }
     }
     if (filterArmyCost !== '') {
       const cost = parseInt(filterArmyCost);
@@ -346,7 +359,10 @@ export default function ArmyDetailScreen() {
       </View>
 
       <View style={styles.actionButtons}>
-        <Pressable style={styles.actionButton} onPress={() => setShowCardPicker(true)}>
+        <Pressable style={styles.actionButton} onPress={() => {
+            setFilterContemporaryOnly(contemporaryOnly);
+            setShowCardPicker(true);
+          }}>
           <Ionicons name="add-circle-outline" size={20} color="#fff" />
           <Text style={styles.actionButtonText}>Add Card</Text>
         </Pressable>
@@ -538,6 +554,23 @@ export default function ArmyDetailScreen() {
                     )}
                   </View>
                   <Text style={styles.checkboxLabel}>Contemporary Legal Only</Text>
+                </Pressable>
+              </View>
+
+              <View style={styles.filterSection}>
+                <Pressable 
+                  style={styles.checkboxRow}
+                  onPress={() => setFilterCollectionOnly(!filterCollectionOnly)}
+                >
+                  <View style={[
+                    styles.checkbox,
+                    filterCollectionOnly && styles.checkboxChecked
+                  ]}>
+                    {filterCollectionOnly && (
+                      <Ionicons name="checkmark" size={14} color="#fff" />
+                    )}
+                  </View>
+                  <Text style={styles.checkboxLabel}>Collection Only</Text>
                 </Pressable>
               </View>
 

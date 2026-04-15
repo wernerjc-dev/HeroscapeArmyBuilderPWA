@@ -36,6 +36,7 @@ export default function ArmyCardPicker({
   const [selectedPersonalities, setSelectedPersonalities] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [filterContemporaryOnly, setFilterContemporaryOnly] = useState(false);
+  const [filterCollectionOnly, setFilterCollectionOnly] = useState(false);
   const [filterArmyCost, setFilterArmyCost] = useState('');
   const [filterArmyCostOperator, setFilterArmyCostOperator] = useState<string>('=');
   const [selectedCardData, setSelectedCardData] = useState<any | undefined>(undefined);
@@ -60,7 +61,7 @@ export default function ArmyCardPicker({
 
   const hasActiveFilters = selectedFactions.length > 0 || selectedCardTypes.length > 0 || 
     selectedSizes.length > 0 || selectedSpecies.length > 0 || selectedClasses.length > 0 ||
-    selectedPersonalities.length > 0 || filterContemporaryOnly || filterArmyCost !== '';
+    selectedPersonalities.length > 0 || filterContemporaryOnly || filterCollectionOnly || filterArmyCost !== '';
 
   const clearFilters = () => {
     setSelectedFactions([]);
@@ -79,6 +80,10 @@ export default function ArmyCardPicker({
 
     if (contemporaryOnly || filterContemporaryOnly) {
       cards = cards.filter((c) => c.attributes.contemporaryLegal === true);
+    }
+
+    if (filterCollectionOnly && collection.length > 0) {
+      cards = cards.filter((c) => collectionMap[c.id] !== undefined);
     }
 
     if (searchText) {
@@ -128,8 +133,8 @@ export default function ArmyCardPicker({
 
     return cards;
   }, [searchText, selectedFactions, selectedCardTypes, selectedSizes, selectedSpecies, 
-      selectedClasses, selectedPersonalities, filterContemporaryOnly, filterArmyCost, 
-      filterArmyCostOperator, contemporaryOnly]);
+      selectedClasses, selectedPersonalities, filterContemporaryOnly, filterCollectionOnly, filterArmyCost, 
+      filterArmyCostOperator, contemporaryOnly, collection]);
 
   const collectionMap = useMemo(() => {
     const map: Record<string, number> = {};
@@ -293,6 +298,23 @@ export default function ArmyCardPicker({
                       )}
                     </View>
                     <Text style={styles.checkboxLabel}>Contemporary Legal Only</Text>
+                  </Pressable>
+                </View>
+
+                <View style={styles.filterSection}>
+                  <Pressable 
+                    style={styles.checkboxRow}
+                    onPress={() => setFilterCollectionOnly(!filterCollectionOnly)}
+                  >
+                    <View style={[
+                      styles.checkbox,
+                      filterCollectionOnly && styles.checkboxChecked
+                    ]}>
+                      {filterCollectionOnly && (
+                        <Ionicons name="checkmark" size={14} color="#fff" />
+                      )}
+                    </View>
+                    <Text style={styles.checkboxLabel}>Collection Only</Text>
                   </Pressable>
                 </View>
 
