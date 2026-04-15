@@ -6,12 +6,13 @@ type Props = {
   imagePath: string;
   style?: StyleProp<ViewStyle>;
   onPress?: () => void;
+  disabled?: boolean;
 };
 
-export default function ArmyCard({ imagePath, style, onPress }: Props) {
+export default function ArmyCard({ imagePath, style, onPress, disabled }: Props) {
   const normalizedPath = imagePath ? imagePath.replace(/\\/g, '/') : '';
   return (
-    <Pressable onPress={onPress} style={{ flex: 1 }}>
+    <Pressable onPress={onPress} style={{ flex: 1, opacity: disabled ? 0.4 : 1 }}>
       <Image 
         source={ImageManifest[normalizedPath]} 
         style={[styles.image, style]}

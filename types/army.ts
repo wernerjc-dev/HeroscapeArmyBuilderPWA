@@ -17,3 +17,13 @@ export interface ArmyWithStats extends Army {
   totalPoints: number;
   cardCount: number;
 }
+
+export interface CollectionEntry {
+  cardId: string;
+  quantity: number;
+}
+
+export interface Collection {
+  cards: CollectionEntry[];
+  updatedAt: string;
+}
