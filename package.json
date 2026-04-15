@@ -21,6 +21,7 @@
     "ajv": "^8.18.0",
     "expo": "~54.0.0",
     "expo-blur": "~15.0.0",
+    "expo-build-properties": "~1.0.10",
     "expo-checkbox": "~4.0.0",
     "expo-constants": "~17.0.0",
     "expo-dev-client": "~6.0.0",
