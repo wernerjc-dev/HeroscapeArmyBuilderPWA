@@ -31,7 +31,7 @@ export default function CreateArmyScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()}>
           <Text style={styles.backButton}>Cancel</Text>

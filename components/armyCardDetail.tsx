@@ -96,7 +96,7 @@ export default function ArmyCardDetail({ isVisible, onClose, data }: Props) {
   return (
     <Modal animationType="slide" transparent={true} visible={isVisible}>
       <GestureHandlerRootView style={styles.gestureRoot}>
-        <SafeAreaView style={[styles.modalContainer, { height }]} edges={['bottom']}>
+        <SafeAreaView style={[styles.modalContainer, { height }]} edges={['top', 'bottom']}>
           <View style={[styles.modalContent, { width, height }]}>
             <Pressable onPress={onClose} style={styles.titleContainer}>
               <Text style={styles.title}>{data.name}</Text>

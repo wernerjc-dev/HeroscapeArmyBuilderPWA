@@ -13,7 +13,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/icon_1024.png",
+        "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#25292e"
       },
       "package": "com.jwerner.HeroscapeArmyBuilder"
