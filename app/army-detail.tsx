@@ -744,7 +744,7 @@ export default function ArmyDetailScreen() {
       </Modal>
 
       <Modal visible={showSettings} animationType="slide" transparent>
-        <KeyboardAvoidingView behavior="padding" style={styles.modalOverlay} keyboardVerticalOffset={90}>
+        <KeyboardAvoidingView behavior="padding" style={styles.modalOverlay}>
           <SafeAreaView style={styles.modalContent} edges={['bottom']}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Army Settings</Text>
