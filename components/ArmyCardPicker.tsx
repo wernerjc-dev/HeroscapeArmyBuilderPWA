@@ -186,7 +186,7 @@ export default function ArmyCardPicker({
   return (
     <Modal visible={isVisible} animationType="slide" presentationStyle="pageSheet">
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaView style={styles.pickerContainer} edges={['bottom']}>
+        <SafeAreaView style={styles.pickerContainer} edges={['top', 'bottom']}>
           <View style={styles.pickerHeader}>
             <Text style={styles.pickerTitle}>Select Card</Text>
             <Pressable onPress={onClose}>
