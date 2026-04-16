@@ -744,7 +744,7 @@ export default function ArmyDetailScreen() {
       </Modal>
 
       <Modal visible={showSettings} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView behavior="padding" style={styles.modalOverlay} keyboardVerticalOffset={90}>
           <SafeAreaView style={styles.modalContent} edges={['bottom']}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Army Settings</Text>
@@ -794,7 +794,7 @@ export default function ArmyDetailScreen() {
               <Text style={styles.saveButtonText}>Save Changes</Text>
             </Pressable>
           </SafeAreaView>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       <ArmyCardDetail 
