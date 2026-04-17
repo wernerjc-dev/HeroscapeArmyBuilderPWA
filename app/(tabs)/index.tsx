@@ -107,6 +107,8 @@ export default function SearchScreen() {
       if (filterArmyCostOperator === '=' && c.armyCost !== cost) return false;
       if (filterArmyCostOperator === '>' && c.armyCost <= cost) return false;
       if (filterArmyCostOperator === '<' && c.armyCost >= cost) return false;
+      if (filterArmyCostOperator === '≥' && c.armyCost < cost) return false;
+      if (filterArmyCostOperator === '≤' && c.armyCost > cost) return false;
     }
     return true;
   });
@@ -179,7 +181,7 @@ export default function SearchScreen() {
               <Text style={styles.filterLabel}>Point Cost</Text>
               <View style={styles.costFilterRow}>
                 <View style={styles.costOperatorContainer}>
-                  {['<', '=', '>'].map((op) => (
+                  {['≤', '=', '≥'].map((op) => (
                     <Pressable
                       key={op}
                       style={[

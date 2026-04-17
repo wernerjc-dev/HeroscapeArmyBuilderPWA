@@ -163,6 +163,8 @@ export default function CollectionScreen() {
         if (filterArmyCostOperator === '=' && c.armyCost !== cost) return false;
         if (filterArmyCostOperator === '>' && c.armyCost <= cost) return false;
         if (filterArmyCostOperator === '<' && c.armyCost >= cost) return false;
+        if (filterArmyCostOperator === '≥' && c.armyCost < cost) return false;
+        if (filterArmyCostOperator === '≤' && c.armyCost > cost) return false;
       }
       return true;
     });
@@ -189,7 +191,7 @@ export default function CollectionScreen() {
             </Pressable>
           </View>
           <Pressable style={styles.addButton} onPress={() => setShowAddCard(true)}>
-            <Ionicons name="add" size={24} color="#fff" />
+            <Ionicons name="create-outline" size={24} color="#fff" />
           </Pressable>
         </View>
 
@@ -239,25 +241,25 @@ export default function CollectionScreen() {
               <View style={styles.filterSection}>
                 <Text style={styles.filterLabel}>Point Cost</Text>
                 <View style={styles.costFilterRow}>
-                  <View style={styles.costOperatorContainer}>
-                    {['<', '=', '>'].map((op) => (
-                      <Pressable
-                        key={op}
-                        style={[
-                          styles.costOperatorButton,
-                          filterArmyCostOperator === op && styles.costOperatorButtonSelected,
-                        ]}
-                        onPress={() => setFilterArmyCostOperator(op)}
-                      >
-                        <Text style={[
-                          styles.costOperatorText,
-                          filterArmyCostOperator === op && styles.costOperatorTextSelected,
-                        ]}>
-                          {op}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
+<View style={styles.costOperatorContainer}>
+                  {['≤', '=', '≥'].map((op) => (
+                    <Pressable
+                      key={op}
+                      style={[
+                        styles.costOperatorButton,
+                        filterArmyCostOperator === op && styles.costOperatorButtonSelected,
+                      ]}
+                      onPress={() => setFilterArmyCostOperator(op)}
+                    >
+                      <Text style={[
+                        styles.costOperatorText,
+                        filterArmyCostOperator === op && styles.costOperatorTextSelected,
+                      ]}>
+                        {op}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
                   <TextInput
                     style={styles.costInput}
                     value={filterArmyCost}

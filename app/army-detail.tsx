@@ -228,8 +228,10 @@ export default function ArmyDetailScreen() {
     if (filterArmyCost !== '') {
       const cost = parseInt(filterArmyCost);
       if (filterArmyCostOperator === '=' && c.armyCost !== cost) return false;
-      if (filterArmyCostOperator === '>' && c.armyCost <= cost) return false;
-      if (filterArmyCostOperator === '<' && c.armyCost >= cost) return false;
+if (filterArmyCostOperator === '>' && c.armyCost <= cost) return false;
+        if (filterArmyCostOperator === '<' && c.armyCost >= cost) return false;
+        if (filterArmyCostOperator === '≥' && c.armyCost < cost) return false;
+        if (filterArmyCostOperator === '≤' && c.armyCost > cost) return false;
     }
     if (fitsInArmy) {
       const remainingPoints = (army?.pointTotal || 0) - totalPoints;
@@ -494,7 +496,7 @@ export default function ArmyDetailScreen() {
                 <Text style={styles.filterLabel}>Point Cost</Text>
                 <View style={styles.costFilterRow}>
                   <View style={styles.costOperatorContainer}>
-                    {['<', '=', '>'].map((op) => (
+                    {['≤', '=', '≥'].map((op) => (
                       <Pressable
                         key={op}
                         style={[

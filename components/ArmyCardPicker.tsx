@@ -127,6 +127,8 @@ export default function ArmyCardPicker({
         if (filterArmyCostOperator === '=' && c.armyCost !== cost) return false;
         if (filterArmyCostOperator === '>' && c.armyCost <= cost) return false;
         if (filterArmyCostOperator === '<' && c.armyCost >= cost) return false;
+        if (filterArmyCostOperator === '≥' && c.armyCost < cost) return false;
+        if (filterArmyCostOperator === '≤' && c.armyCost > cost) return false;
         return true;
       });
     }
@@ -255,7 +257,7 @@ export default function ArmyCardPicker({
                   <Text style={styles.filterLabel}>Point Cost</Text>
                   <View style={styles.costFilterRow}>
                     <View style={styles.costOperatorContainer}>
-                      {['<', '=', '>'].map((op) => (
+                      {['≤', '=', '≥'].map((op) => (
                         <Pressable
                           key={op}
                           style={[
