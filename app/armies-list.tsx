@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { View, StyleSheet, FlatList, Pressable, Text, TextInput, Alert } from 'react-native';
+import { View, StyleSheet, FlatList, Pressable, Text, TextInput, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { ArmyWithStats } from '@/types/army';
-import { getArmies, deleteArmy } from '@/utils/armyStorage';
+import { getArmies, deleteArmy } from '@/utils/storage';
 import data from '@/data/heroscape-cards.json';
 
 type SortMode = 'date' | 'name';
@@ -36,6 +36,8 @@ export default function ArmiesListScreen() {
   const [sortMode, setSortMode] = useState<SortMode>('date');
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState('');
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [armyToDelete, setArmyToDelete] = useState<{id: string; name: string} | null>(null);
 
   const loadArmies = useCallback(async () => {
     setLoading(true);
@@ -63,22 +65,30 @@ export default function ArmiesListScreen() {
     setSortMode((prev) => (prev === 'date' ? 'name' : 'date'));
   };
 
-  const handleDeleteArmy = (armyId: string, armyName: string) => {
-    Alert.alert(
-      'Delete Army',
-      `Are you sure you want to delete "${armyName}"?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            await deleteArmy(armyId);
-            loadArmies();
-          },
-        },
-      ]
-    );
+  const handleDeletePress = (armyId: string, armyName: string) => {
+    setArmyToDelete({ id: armyId, name: armyName });
+    setDeleteModalVisible(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!armyToDelete) return;
+    try {
+      await deleteArmy(armyToDelete.id);
+      loadArmies();
+    } catch (error) {
+      console.error('Error deleting army:', error);
+    }
+    setDeleteModalVisible(false);
+    setArmyToDelete(null);
+  };
+
+  const cancelDelete = () => {
+    setDeleteModalVisible(false);
+    setArmyToDelete(null);
+  };
+
+  const handleEditPress = (armyId: string) => {
+    router.push({ pathname: '/army-detail', params: { id: armyId } });
   };
 
   const filteredAndSortedArmies = useMemo(() => {
@@ -108,19 +118,26 @@ export default function ArmiesListScreen() {
     return (
       <Pressable
         style={styles.armyItem}
-        onPress={() => router.push({ pathname: '/army-detail', params: { id: item.id } })}
-        onLongPress={() => handleDeleteArmy(item.id, item.name)}
+        onPress={() => handleEditPress(item.id)}
       >
         <View style={styles.armyHeader}>
           <Text style={styles.armyName} numberOfLines={1}>
             {item.name}
           </Text>
           <View style={styles.armyActions}>
-            <Pressable onPress={() => router.push({ pathname: '/army-detail', params: { id: item.id } })}>
-              <Ionicons name="create-outline" size={20} color="#703095" />
+            <Pressable 
+              onPress={() => handleEditPress(item.id)} 
+              hitSlop={12}
+              style={styles.actionButton}
+            >
+              <Ionicons name="create-outline" size={22} color="#703095" />
             </Pressable>
-            <Pressable onPress={() => handleDeleteArmy(item.id, item.name)} style={styles.deleteButton}>
-              <Ionicons name="trash-outline" size={20} color="#ff4444" />
+            <Pressable 
+              onPress={() => handleDeletePress(item.id, item.name)} 
+              hitSlop={12}
+              style={styles.actionButton}
+            >
+              <Ionicons name="trash-outline" size={22} color="#ff4444" />
             </Pressable>
           </View>
         </View>
@@ -201,6 +218,30 @@ export default function ArmiesListScreen() {
       <Pressable style={styles.fab} onPress={() => router.push('/create-army')}>
         <Ionicons name="add" size={28} color="#fff" />
       </Pressable>
+
+      <Modal
+        visible={deleteModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={cancelDelete}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Delete Army</Text>
+            <Text style={styles.modalText}>
+              Are you sure you want to delete "{armyToDelete?.name}"?
+            </Text>
+            <View style={styles.modalButtons}>
+              <Pressable style={styles.modalCancelButton} onPress={cancelDelete}>
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </Pressable>
+              <Pressable style={styles.modalDeleteButton} onPress={confirmDelete}>
+                <Text style={styles.modalDeleteText}>Delete</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -279,6 +320,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
   },
+  actionButton: {
+    padding: 4,
+  },
   deleteButton: {
     marginLeft: 8,
   },
@@ -335,5 +379,53 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
+    padding: 24,
+    width: '80%',
+    maxWidth: 320,
+  },
+  modalTitle: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
+  modalText: {
+    color: '#aaa',
+    fontSize: 16,
+    marginBottom: 24,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+  },
+  modalCancelButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+  },
+  modalCancelText: {
+    color: '#aaa',
+    fontSize: 16,
+  },
+  modalDeleteButton: {
+    backgroundColor: '#ff4444',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  modalDeleteText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

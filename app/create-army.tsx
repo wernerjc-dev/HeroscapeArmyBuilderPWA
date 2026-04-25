@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View, StyleSheet, Text, TextInput, Switch, Pressable, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { createArmy } from '@/utils/armyStorage';
+import { createArmy } from '@/utils/storage';
 
 export default function CreateArmyScreen() {
   const router = useRouter();

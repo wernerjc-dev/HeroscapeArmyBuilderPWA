@@ -8,7 +8,7 @@ import data from '@/data/heroscape-cards.json';
 import ArmyCard from '@/components/armyCard';
 import ArmyCardDetail from '@/components/armyCardDetail';
 import ArmyCardPicker from '@/components/ArmyCardPicker';
-import { getCollection, addCardToCollection, removeCardFromCollection, updateCardQuantityInCollection } from '@/utils/collectionStorage';
+import { getCollection, addCardToCollection, removeCardFromCollection, updateCardQuantityInCollection } from '@/utils/storage';
 import { CollectionEntry } from '@/types/army';
 
 export default function CollectionScreen() {

@@ -30,7 +30,7 @@ export default function SearchModal({ isVisible, onClose, onApply, filters, filt
   const [sets, setSets] = useState(filters?.sets || []);
 
   const onApplyPress = () => {
-    var filters = {
+    const filters = {
       affiliations: affiliations,
       armyCost: armyCost,
       armyCostOperators: armyCostOperators,
