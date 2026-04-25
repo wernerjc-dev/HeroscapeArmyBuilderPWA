@@ -2,20 +2,20 @@
   "name": "Heroscape Army Builder",
   "short_name": "ArmyBuilder",
   "description": "Build and manage your Heroscape armies",
-  "start_url": "/HeroscapeArmyBuilderPWA/",
+  "start_url": "/HeroscapeArmyBuilderPWA",
   "display": "standalone",
   "background_color": "#25292e",
   "theme_color": "#703095",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/assets/images/icon.png",
+      "src": "assets/images/icon.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/assets/images/icon.png",
+      "src": "assets/images/icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

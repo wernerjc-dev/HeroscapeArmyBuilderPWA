@@ -1,5 +1,6 @@
 const CACHE_NAME = 'heroscape-army-builder-v1';
-const OFFLINE_URL = '/offline.html';
+const BASE_URL = '/HeroscapeArmyBuilderPWA';
+const OFFLINE_URL = BASE_URL + '/offline.html';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -20,6 +21,30 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') {
+    return;
+  }
+
+  const url = new URL(event.request.url);
+  const isExpoAsset = url.pathname.startsWith(BASE_URL + '/_expo') || 
+                       url.pathname.startsWith(BASE_URL + '/assets');
+  
+  if (isExpoAsset) {
+    event.respondWith(
+      caches.match(event.request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        return fetch(event.request).then((networkResponse) => {
+          if (networkResponse.ok) {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseClone);
+            });
+          }
+          return networkResponse;
+        });
+      })
+    );
     return;
   }
 
@@ -61,7 +86,7 @@ self.addEventListener('fetch', (event) => {
 
       return fetch(event.request)
         .then((response) => {
-          if (response.ok && event.request.destination !== 'worker' && event.request.destination !== 'script') {
+          if (response.ok && event.request.destination !== 'worker') {
             const responseClone = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
               cache.put(event.request, responseClone);
