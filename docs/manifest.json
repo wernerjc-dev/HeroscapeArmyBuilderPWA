@@ -2,7 +2,7 @@
   "name": "Heroscape Army Builder",
   "short_name": "ArmyBuilder",
   "description": "Build and manage your Heroscape armies",
-  "start_url": "/",
+  "start_url": "/HeroscapeArmyBuilderPWA/",
   "display": "standalone",
   "background_color": "#25292e",
   "theme_color": "#703095",
